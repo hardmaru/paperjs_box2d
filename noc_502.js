@@ -1,16 +1,23 @@
+/*globals paper, console, $ */
+/*jslint nomen: true, undef: true, sloppy: true */
+
+var NOC = NOC || {};
+
+
+
 // Extended Daniel Shiffman's natureofcode example to paper.js
-
-// objects:
-
-// A rectangular box
-// paper-js usage:
+// https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp05_libraries/box2d-html5
 
 // create local scope to avoid polluting global namespace
-(function () {
+NOC.demo = NOC.demo || [];
+NOC.demo[2] = function (canvasName) {
 
 // put paper.js in local environment, and setup canvas and tool (for events)
-paper.install(window);
-paper.setup('myCanvas');
+this.paper = new paper.PaperScope();
+this.paper.setup(canvasName);
+
+with (this.paper) {
+
 var tool = new Tool();
 
 // setup objects used in the sketch:
@@ -49,22 +56,22 @@ var Box = function(x, y) {
   this.body.SetAngularVelocity(getRandom(-5,5));
 
   // creates the shape to be drawn by paper.js
-  this.shape = new Group();
-  this.shape.addChild( Path.Rectangle({
+  this.paperShape = new Group();
+  this.paperShape.addChild( Path.Rectangle({
     point:  [0, 0],
     size:   [this.w, this.h],
     strokeColor:  'black',
     fillColor:    getRandomColor()
   }) );
-  this.shape.position = new Point(x, y);
-  this.shape.transformContent = false;
+  this.paperShape.position = new Point(x, y);
+  this.paperShape.transformContent = false;
 
 };
 
 // This function removes the particle from the box2d world, and also in paper.js
 Box.prototype.killBody = function() {
   world.DestroyBody(this.body);
-  this.shape.remove();
+  this.paperShape.remove();
 };
 
 // Is the particle ready for deletion?
@@ -73,7 +80,7 @@ Box.prototype.done = function() {
   var pos = B2Helper.scaleToPixels(this.body.GetPosition());
 
   // Is it off the bottom of the screen?  also kill it if the life is non positive
-  if (this.life <= 0 || pos.y > height+this.w*this.h) {
+  if (this.life <= 0 || pos.y > height+Math.max(this.w,this.h)) {
     this.killBody();
     return true;
   }
@@ -90,14 +97,14 @@ Box.prototype.update = function(event) {
   
   // Draw it!
   // translate:
-  this.shape.position.x = pos.x;
-  this.shape.position.y = pos.y;
+  this.paperShape.position.x = pos.x;
+  this.paperShape.position.y = pos.y;
   // rotation:
-  this.shape.rotate(a-this.shape.rotation);
+  this.paperShape.rotate(a-this.paperShape.rotation);
 
   // fade out when life decreases
   if (event.count % SHADER_FREQ === 0) { // do every half a second
-    this.shape.opacity = Math.max(0,this.life) / MAX_LIFE;
+    this.paperShape.opacity = Math.max(0,this.life) / MAX_LIFE;
   }
 
   // subtract orandom life every frame
@@ -148,19 +155,19 @@ var Particle = function(x, y, r) {
     to:     [0+this.r, 0],
   });
 
-  this.shape = new Group();
-  this.shape.addChild(circle);
-  this.shape.addChild(line);
-  this.shape.strokeColor = 'black';
-  this.shape.position = new Point(x, y);
-  this.shape.transformContent = false;
+  this.paperShape = new Group();
+  this.paperShape.addChild(circle);
+  this.paperShape.addChild(line);
+  this.paperShape.strokeColor = 'black';
+  this.paperShape.position = new Point(x, y);
+  this.paperShape.transformContent = false;
 
 };
 
 // This function removes the particle from the box2d world, and also in paper.js
 Particle.prototype.killBody = function() {
   world.DestroyBody(this.body);
-  this.shape.remove();
+  this.paperShape.remove();
 };
 
 // Is the particle ready for deletion?
@@ -188,16 +195,16 @@ Particle.prototype.update = function(event) {
   // Draw it!
 
   // translate:
-  this.shape.position.x = pos.x;
-  this.shape.position.y = pos.y;
+  this.paperShape.position.x = pos.x;
+  this.paperShape.position.y = pos.y;
 
   // rotation:
-  this.shape.rotate(a-this.shape.rotation);
+  this.paperShape.rotate(a-this.paperShape.rotation);
 
   // fade out when life decreases
   if (event.count % SHADER_FREQ === 0) { // do every half a second
     opacity = Math.max(0,this.life) / MAX_LIFE;
-    this.shape.opacity = opacity;
+    this.paperShape.opacity = opacity;
   }
 
   // subtract orandom life every frame
@@ -234,7 +241,7 @@ var Boundary = function(x_,y_, w_, h_) {
   this.body = world.CreateBody(bd).CreateFixture(fd);
 
   // creates the shape to be drawn by paper.js
-  this.shape = new Shape.Rectangle({
+  this.paperShape = new Shape.Rectangle({
     point:  [this.x-this.w/2, this.y-this.h/2],
     size:   [this.w, this.h],
     strokeColor:  'black',
@@ -256,7 +263,7 @@ var mousePressed = function (event) {
 
 // main animation loop:
 
-draw = function (event) {
+var draw = function (event) {
 
   // main simulation step for physics engine. 
   // 2nd and 3rd arguments are velocity and position iterations
@@ -264,9 +271,9 @@ draw = function (event) {
 
   // Boxes fall from the top every so often
   var chance = getRandom(0,1);
-  if (chance < 0.1) {
+  if (chance < 0.05) {
     var item;
-    if (chance < 0.05) {
+    if (chance < 0.025) {
       item = new Box(width/2,30);
     } else {
       item = new Particle(width/2,30);
@@ -284,15 +291,15 @@ draw = function (event) {
 };
 
 // useful helper functions
-getRandom = function (min, max) {
+var getRandom = function (min, max) {
   return Math.random() * (max - min) + min;
 };
 
-getRandomInt = function (min, max) {
+var getRandomInt = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
-getRandomColor = function() {
+var getRandomColor = function() {
   var c = new Color(Math.random(), Math.random(), Math.random());
   return c;
 };
@@ -340,7 +347,7 @@ fps_data.style = {
 fps_data.prevTimeStamp = 0.0;
 
 var desc = new PointText(24, height-24);
-desc.content = 'Custom Polygons.';
+desc.content = 'Boundary Objects.';
 desc.style = {
   fontFamily: 'Courier New',
   fontWeight: 'normal',
@@ -361,19 +368,20 @@ clickMe.style = {
 
 // set animation and event hooks:
 
-window.onload = function () {
-  view.onFrame = function(event) {
-    var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
-    // update fps every 60 frames.
-    if ((event.count + 1) % 60 === 0) {
-      fps_data.content = fps;
-      fps_data.prevTimeStamp = event.time;
-    }
-    draw(event);
-  };
-  tool.onMouseDown = mousePressed;
-  tool.onMouseDrag = mousePressed;
+view.onFrame = function(event) {
+  var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
+  // update fps every 60 frames.
+  if ((event.count + 1) % 60 === 0) {
+    fps_data.content = fps;
+    fps_data.prevTimeStamp = event.time;
+  }
+  draw(event);
 };
 
-})();
+tool.onMouseDown = mousePressed;
+tool.onMouseDrag = mousePressed;
+
+}
+
+};
 

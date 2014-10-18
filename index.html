@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Nature of Code box2d examples with paper.js</title>
+	<meta name="author" content="hardmaru" />
+
+	<meta name="Resource-type" content="Document" />
+
+
+	<link rel="stylesheet" type="text/css" href="jquery.fullPage.css" />
+	<link rel="stylesheet" type="text/css" href="noc.css" />
+	<style>
+
+	/* Style for our header texts
+	* --------------------------------------- */
+	h1{
+		font-size: 4em;
+		font-family: arial,helvetica;
+		color: '#20484c';
+		margin:0;
+		opacity: 0.5;
+	}
+	.intro p{
+		color: '#20484c';
+		opacity: 0.5;
+	}
+
+	/* Centered texts in each section
+	* --------------------------------------- */
+	.section{
+		text-align:center;
+	}
+
+	/* Overwriting styles for control arrows for slides
+	* --------------------------------------- */
+	.controlArrow.prev {
+		left: 50px;
+	}
+	.controlArrow.next{
+		right: 50px;
+	}
+
+
+	/* Bottom menu
+	* --------------------------------------- */
+	#infoMenu li a {
+		color: #999;
+	}
+	</style>
+
+	<!--[if IE]>
+		<script type="text/javascript">
+			 var console = { log: function() {} };
+		</script>
+	<![endif]-->
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+
+	<script type="text/javascript" src="jquery.slimscroll.min.js"></script>
+	<script type="text/javascript" src="jquery.fullPage.min.js"></script>
+
+	<script type="text/javascript">
+
+		$(document).ready(function() {
+			$('#fullpage').fullpage({
+				anchors: ['intro', 'demo1', 'demo2', 'demo3', 'demo4', 'demo5', 'demo6', 'demo7', 'demo8'],
+				sectionsColor: ['#FFF', '#FFF', '#FFF', '#FFF', '#FFF', '#FFF', '#FFF', '#FFF', '#FFF'],
+				navigation: true,
+				navigationPosition: 'right',
+				navigationTooltips:
+				['intro',
+				'boxes',
+				'boundary',
+				'custom boundary',
+				'custom polygons',
+				'lollipop',
+				'joints',
+				'motor',
+				'springs']
+			});
+		});
+	</script>
+
+</head>
+<body>
+
+
+<div id="fullpage">
+	<div class="section" id="section0">
+		<canvas id="myCanvas0" resize></canvas>
+		<div class="intro">
+
+			<h1>box2d with paper.js</h2>
+			<br>
+			<p><a href = "https://github.com/hardmaru/paperjs_box2d/blob/master/README.md">examples</a> of <a href = "https://code.google.com/p/box2d-html5/"Box2D</a> <a href = "https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp05_libraries/box2d-html5">tutorial code</a> inside <a href = "http://shiffman.net/">shiffman</a>'s <a href="http://natureofcode.com/book/chapter-5-physics-libraries/">nature of code</a> using <a href="http://paperjs.org/">paper.js</a> to render shapes</p>
+			<br>
+			<br>
+			<h2><a href = "https://github.com/hardmaru/paperjs_box2d/blob/master/README.md">github</a></h2>
+		</div>
+	</div>
+	<div class="section" id="section1">
+		<div class="intro">
+			<canvas id="myCanvas1" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section2">
+		<div class="intro">
+			<canvas id="myCanvas2" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section3">
+		<div class="intro">
+			<canvas id="myCanvas3" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section4">
+		<div class="intro">
+			<canvas id="myCanvas4" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section5">
+		<div class="intro">
+			<canvas id="myCanvas5" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section6">
+		<div class="intro">
+			<canvas id="myCanvas6" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section7">
+		<div class="intro">
+			<canvas id="myCanvas7" resize></canvas>
+		</div>
+	</div>
+	<div class="section" id="section8">
+		<div class="intro">
+			<canvas id="myCanvas8" resize></canvas>
+		</div>
+	</div>
+
+
+
+</div>
+
+<script language="javascript" type="text/javascript" src="box2d-html5.js"></script>
+<script language="javascript" type="text/javascript" src="box2d-helper.js"></script>
+<script language="javascript" type="text/javascript" src="paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="intro_demo.js"></script>
+<script language="javascript" type="text/javascript" src="noc_501.js"></script>
+<script language="javascript" type="text/javascript" src="noc_502.js"></script>
+<script language="javascript" type="text/javascript" src="noc_503.js"></script>
+<script language="javascript" type="text/javascript" src="noc_504.js"></script>
+<script language="javascript" type="text/javascript" src="noc_505.js"></script>
+<script language="javascript" type="text/javascript" src="noc_506.js"></script>
+<script language="javascript" type="text/javascript" src="noc_507.js"></script>
+<script language="javascript" type="text/javascript" src="noc_508.js"></script>
+
+<script>
+
+for (var i = 0 ; i <= 8; i++) {
+	NOC.demo[i]("myCanvas"+i);
+}
+
+</script>
+
+
+
+</body>
+
+</html>

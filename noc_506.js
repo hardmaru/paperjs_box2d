@@ -1,16 +1,21 @@
+/*globals paper, console, $ */
+/*jslint nomen: true, undef: true, sloppy: true */
+
+var NOC = NOC || {};
+
 // Extended Daniel Shiffman's natureofcode example to paper.js
-
-// objects:
-
-// A rectangular box
-// paper-js usage:
+// https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp05_libraries/box2d-html5
 
 // create local scope to avoid polluting global namespace
-(function () {
+NOC.demo = NOC.demo || [];
+NOC.demo[6] = function (canvasName) {
 
 // put paper.js in local environment, and setup canvas and tool (for events)
-paper.install(window);
-paper.setup('myCanvas');
+this.paper = new paper.PaperScope();
+this.paper.setup(canvasName);
+
+with (this.paper) {
+
 var tool = new Tool();
 
 // setup objects used in the sketch:
@@ -125,7 +130,7 @@ Particle.prototype.update = function(event) {
 // Two particles connected with distance joints
 
 // Constructor
-Pair = function(x,y) {
+var Pair = function(x,y) {
   this.item_id = getItemID();
   console.log("a Pair is created with ID = "+this.item_id);
   this.len = getRandom(40, 60);
@@ -245,7 +250,7 @@ var mousePressed = function (event) {
 
 // main animation loop:
 
-draw = function (event) {
+var draw = function (event) {
 
   // main simulation step for physics engine. 
   // 2nd and 3rd arguments are velocity and position iterations
@@ -261,21 +266,21 @@ draw = function (event) {
 };
 
 // useful helper functions
-getRandom = function (min, max) {
+var getRandom = function (min, max) {
   return Math.random() * (max - min) + min;
 };
 
-getRandomInt = function (min, max) {
+var getRandomInt = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
-getRandomColor = function() {
+var getRandomColor = function() {
   var c = new Color(Math.random(), Math.random(), Math.random());
   return c;
 };
 
 // generate a unique item id for debugging:
-getItemID = function() {
+var getItemID = function() {
   item_id += 1;
   return item_id;
 };
@@ -345,7 +350,7 @@ clickMe.style = {
 
 // set animation and event hooks:
 
-window.onload = function () {
+
   view.onFrame = function(event) {
     var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
     // update fps every 60 frames.
@@ -357,7 +362,7 @@ window.onload = function () {
   };
   tool.onMouseDown = mousePressed;
   tool.onMouseDrag = mousePressed;
-};
+}
 
-})();
+};
 

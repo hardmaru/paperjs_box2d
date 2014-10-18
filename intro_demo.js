@@ -8,7 +8,7 @@ var NOC = NOC || {};
 
 // create local scope to avoid polluting global namespace
 NOC.demo = NOC.demo || [];
-NOC.demo[8] = function (canvasName) {
+NOC.demo[0] = function (canvasName) {
 
 // put paper.js in local environment, and setup canvas and tool (for events)
 this.paper = new paper.PaperScope();
@@ -17,6 +17,29 @@ this.paper.setup(canvasName);
 with (this.paper) {
 
 var tool = new Tool();
+
+  var cosTable = new Array(360);
+  var sinTable = new Array(360);
+  var PI = Math.PI;
+
+  // pre compute sine and cosine values to the nearest degree
+  for (i = 0; i < 360; i++) {
+    cosTable[i] = Math.cos((i / 360) * 2 * PI);
+    sinTable[i] = Math.sin((i / 360) * 2 * PI);
+  }
+
+  var fastSin = function (xDeg) {
+    var deg = Math.round(xDeg);
+    if (deg >= 0) {
+      return sinTable[(deg % 360)];
+    }
+    return -sinTable[((-deg) % 360)];
+  };
+
+  var fastCos = function (xDeg) {
+    var deg = Math.round(Math.abs(xDeg));
+    return cosTable[deg % 360];
+  };
 
 // setup objects used in the sketch:
 
@@ -76,85 +99,9 @@ B2Generic.prototype.getColor = function(color_) {
 };
 
 // for the box, x and y are in pixel space already.  let the B2Helper function do conversion.
-var RandomPolygon = function(x, y) {
-  this.r = getRandom(15, 30);
-  this.n_side = getRandomInt(4, 9);
-
-  //
-  this.life = MAX_LIFE; // dies after MAX_LIFE frames, with some randomness.
-
-  // Define a body
-  var bd = new box2d.b2BodyDef();
-  bd.type = box2d.b2BodyType.b2_dynamicBody;
-  bd.position = B2Helper.scaleToWorld(x,y);
-
-  // Define a fixture
-  var fd = new box2d.b2FixtureDef();
-
-  var vertices = [];
-  var angleStep = Math.PI * 2 / this.n_side, i, len;
-
-  for (i = 0; i < this.n_side; i++) {
-    len = this.r * getRandom(1, 1.25);
-    vertices.push(B2Helper.scaleToWorld(len*Math.cos(i*angleStep),len*Math.sin(i*angleStep)));
-  }
-
-  // Fixture holds shape
-  fd.shape = new box2d.b2PolygonShape();
-  fd.shape.SetAsArray(vertices,vertices.length);
-  //println(fd.shape);
-
-  //fd.shape.SetAsBox(scaleToWorld(10),scaleToWorld(10));
-
-  // Some physics
-  fd.density = 1.0;
-  fd.friction = 0.5;
-  fd.restitution = 0.2;
- 
-  // Create the body
-  this.body = world.CreateBody(bd);
-  // Attach the fixture
-  this.body.CreateFixture(fd);
-
-  // Some additional stuff
-  this.body.SetLinearVelocity(new box2d.b2Vec2(getRandom(-10, 10), getRandom(-10, 10)));
-  this.body.SetAngularVelocity(getRandom(-5,5));
-
-  // needed for collision:
-  this.body.SetUserData(this);
-
-  // creates the shape to be drawn by paper.js
-  var path = new Path();
-  var v;
-  // regrab vertices data from box2d object since the order not guaranteed to be same as input
-  vertices = fd.shape.m_vertices;
-  // setup paper.js path to represent polygon
-  path.strokeColor = 'black';
-  for (i = 0; i < vertices.length; i++) {
-    v = B2Helper.scaleToPixels(vertices[i]);
-    path.add(new Point(v.x, v.y));
-  }
-  path.closed = true;
-  path.fillColor = getRandomColor();
-  this.paperShape = new Group();
-  this.paperShape.addChild( path );
-  // have to enclose the polygon by a hidden circle strictly greater than polygon
-  // in order for .position to work in paper.js
-  this.paperShape.addChild( new Path.Circle({
-    center:   [0, 0],
-    radius:   1.5*this.r,
-    hidden:   true
-  }));
-  this.paperShape.position = new Point(x, y);
-  this.paperShape.transformContent = false;
-
-};
-RandomPolygon.prototype = new B2Generic();
-
-// for the box, x and y are in pixel space already.  let the B2Helper function do conversion.
 var Box = function(x, y) {
-  this.w = getRandom(20, 40);
-  this.h = getRandom(10, 30);
+  this.w = getRandom(35, 80);
+  this.h = getRandom(35, 80);
 
   this.r = Math.sqrt(this.w*this.w + this.h*this.h); // resuired for B2Generic
 
@@ -195,7 +142,8 @@ var Box = function(x, y) {
     point:  [0, 0],
     size:   [this.w, this.h],
     strokeColor:  'black',
-    fillColor:    getRandomColor()
+    fillColor:    getRandomColor(),
+    //opacity:  getRandom(0.3, 0.7)
   }) );
   this.paperShape.position = new Point(x, y);
   this.paperShape.transformContent = false;
@@ -205,7 +153,7 @@ Box.prototype = new B2Generic();
 
 // for the particle (circle), x and y are in pixel space already.  let the B2Helper function do conversion.
 var Particle = function(x, y, r) {
-  this.r = getRandom(10, 20);
+  this.r = getRandom(20, 35);
 
   //
   this.life = MAX_LIFE; // dies after MAX_LIFE frames, with some randomness.
@@ -242,7 +190,8 @@ var Particle = function(x, y, r) {
   var circle = new Path.Circle({
     center:  [0, 0],
     radius:   this.r,
-    fillColor:    getRandomColor()
+    fillColor:    getRandomColor(),
+    //opacity:  getRandom(0.3, 0.7)
   });
   var line = new Path.Line({
     from:   [0, 0],
@@ -256,46 +205,60 @@ var Particle = function(x, y, r) {
   this.paperShape.position = new Point(x, y);
   this.paperShape.transformContent = false;
 
+
 };
 Particle.prototype = new B2Generic();
 
-// multishape example
-var Lollipop = function(x, y) {
-  this.w = getRandom(4, 8);
-  this.h = this.w*getRandom(4, 8);
-  this.pop_r = this.w*getRandom(2, 3); // radius of head only of the actual circle.
-  this.r = this.pop_r+this.h/2; // this r represents the total radius of hypothetical circle surrounding shape
-  this.life = MAX_LIFE;
+  var foodCreatureSettings = {
+    creatureType: 'food',
+    radius: 16,
+    maxSpeed: 1,
+    maxForce: 0.05,
+    nMembranePoints: 8,
+    bodyColor: '#5AC74E',
+    shakiness:  0.08,
+    smoothBody: true
+  };
+  var hunterCreatureSettings = {
+    creatureType: 'hunter',
+    radius: 48,
+    maxSpeed: 3,
+    maxForce: 0.15,
+    nMembranePoints: 16,
+    bodyColor: '#C83232',
+    shakiness:  0.03,
+    smoothBody: true
+  };
 
-  // Define a body
+// for the box, x and y are in pixel space already.  let the B2Helper function do conversion.
+var Creature = function(x, y) {
+  var creatureSettings = hunterCreatureSettings;
+  if (getRandom(0, 1) < 0.5) {
+    creatureSettings = foodCreatureSettings;
+  }
+  this.r = creatureSettings.radius*getRandom(0.8, 1.2);
+  this.life = MAX_LIFE; // dies after MAX_LIFE frames, with some randomness.
+
+   // Define a body
   var bd = new box2d.b2BodyDef();
   bd.type = box2d.b2BodyType.b2_dynamicBody;
   bd.position = B2Helper.scaleToWorld(x,y);
 
-  // Define fixture #1
-  var fd1 = new box2d.b2FixtureDef();
+  // Define a fixture
+  var fd = new box2d.b2FixtureDef();
   // Fixture holds shape
-  fd1.shape = new box2d.b2PolygonShape();
-  fd1.shape.SetAsBox(B2Helper.scaleToWorld(this.w/2), B2Helper.scaleToWorld(this.h/2));
-  fd1.density = 1.0;
-  fd1.friction = 0.5;
-  fd1.restitution = 0.2;
+  fd.shape = new box2d.b2CircleShape();
+  fd.shape.m_radius = B2Helper.scaleToWorld(this.r);
+  
+  // Some physics
+  fd.density = 1.0;
+  fd.friction = 0.1;
+  fd.restitution = 0.8;
  
-  // Define fixture #2
-  var fd2 = new box2d.b2FixtureDef();
-  fd2.shape = new box2d.b2CircleShape();
-  fd2.shape.m_radius = B2Helper.scaleToWorld(this.pop_r);
-  var offset = B2Helper.scaleToWorld(new box2d.b2Vec2(0,-this.h/2));
-  fd2.shape.m_p = new box2d.b2Vec2(offset.x,offset.y);
-  fd2.density = 1.0;
-  fd2.friction = 0.5;
-  fd2.restitution = 0.2;
-
   // Create the body
   this.body = world.CreateBody(bd);
   // Attach the fixture
-  this.body.CreateFixture(fd1);
-  this.body.CreateFixture(fd2);
+  this.body.CreateFixture(fd);
 
   // Some additional stuff
   this.body.SetLinearVelocity(new box2d.b2Vec2(getRandom(-10, 10), getRandom(-10, 10)));
@@ -304,31 +267,125 @@ var Lollipop = function(x, y) {
   // needed for collision:
   this.body.SetUserData(this);
 
+  // creature specific drawing:
+  var i = 0; thetaStep = 0;
+  this.nMembranePoints = creatureSettings.nMembranePoints;
+
+    this.membraneDeviation = new Array(this.nMembranePoints);
+    this.membraneLocX = new Array(this.nMembranePoints);
+    this.membraneLocY = new Array(this.nMembranePoints);
+    thetaStep = 360 / this.nMembranePoints;
+    for (i = 0; i < this.nMembranePoints; i += 1) {
+      this.membraneDeviation[i] = 0;
+      this.membraneLocX[i] = fastSin(i * thetaStep);
+      this.membraneLocY[i] = fastCos(i * thetaStep);
+    }
+
+    this.bodyColor = creatureSettings.bodyColor;
+    this.smoothBody = creatureSettings.smoothBody;
+    this.shakiness = creatureSettings.shakiness;
+
+// create items:
+    this.eye = [];
+    this.pupil = [];
+
+    for (i = 0; i < 2; i++) {
+
+        this.pupil[i] = new Path.Ellipse({
+          center: [0, 0],
+          radius: this.r / 6,
+          fillColor: 'black'
+        }).sendToBack();
+
+
+      this.eye[i] = new Path.Ellipse({
+        center: [0, 0],
+        radius: this.r / 3,
+        fillColor: 'white',
+        strokeColor: 'black'
+      }).sendToBack();
+
+    }
+
+    this.head = new Path();
+
+    this.head.strokeColor = 'black';
+    i = this.nMembranePoints - 1;
+    for (; i >= 0; i--) {
+      this.head.add(new Point(this.r * this.membraneLocX[i], this.r * this.membraneLocY[i]));
+    }
+    this.head.closed = true;
+    this.head.fillColor = getRandomColor();
+    //this.head.opacity = getRandom(0.4, 0.9);
+    
+    this.head.sendToBack();
+
   // creates the shape to be drawn by paper.js
+
   this.paperShape = new Group();
-  this.paperShape.addChild( Path.Rectangle({
-    point:  [-this.w/2, -this.h/2],
-    size:   [this.w, this.h],
-    strokeColor:  'black',
-    fillColor:    getRandomColor()
-  }) );
-  this.paperShape.addChild( Path.Circle({
-    center:  [0, -this.h/2],
-    radius:   this.pop_r,
-    strokeColor:  'black',
-    fillColor:    getRandomColor()
-  }) );
-  // have to add hidden circle larger than object to ensure that (0,0) is consistent with b2d's (0x0)
-  this.paperShape.addChild( Path.Circle({ 
-    center:  [0, 0],
-    radius:   this.r,
-    hidden:   true
-  }) );
+  this.paperShape.addChild(this.head);
+  this.paperShape.addChild(this.eye[0]);
+  this.paperShape.addChild(this.eye[1]);
+  this.paperShape.addChild(this.pupil[0]);
+  this.paperShape.addChild(this.pupil[1]);
+
   this.paperShape.position = new Point(x, y);
   this.paperShape.transformContent = false;
 
 };
-Lollipop.prototype = new B2Generic();
+Creature.prototype = new B2Generic();
+
+  Creature.prototype.animateItems = function () {
+    var i = this.nMembranePoints - 1,
+      deviation = 0.0,
+      r = this.r,
+      eyeIndex, eyeDist = 0.6,
+      len, antilen, locX, locY;
+    for (; i >= 0; i--) {
+      deviation = this.membraneDeviation[i];
+      deviation += r * this.shakiness * getRandom(-1.0, 1.0);
+      deviation *= 0.95;
+      this.membraneDeviation[i] = deviation;
+      len = r + deviation;
+      locX = this.membraneLocX[i];
+      locY = this.membraneLocY[i];
+      this.head.segments[i].point.x = len * locX;
+      this.head.segments[i].point.y = len * locY;
+    }
+    if (this.smoothBody) {
+      this.head.smooth();
+    }
+
+    for (i = 0; i < 2; i++) {
+      eyeIndex = Math.round(this.nMembranePoints * (1 - (0.625 + 0.25 * i)));
+      len = r + this.membraneDeviation[eyeIndex] * 1;
+      antilen = r + this.membraneDeviation[eyeIndex + 1 - 2 * i] * 1;
+      locX = this.membraneLocX[eyeIndex];
+      locY = this.membraneLocY[eyeIndex];
+      this.eye[i].position = [len * locX * eyeDist * len / r, len * locY * eyeDist * antilen / r];
+      this.eye[i].radius = [len / 3, len / 3];
+      if (this.pupil[i]) { // if creature has eye pupil
+        this.pupil[i].position = [len * locX * eyeDist * len / r, len * locY * eyeDist * antilen / r];
+        this.pupil[i].radius = [len / 6, len / 6];
+      }
+    }
+  };
+
+Creature.prototype.update = function(event) {
+  // Get the body's position
+  var pos = B2Helper.scaleToPixels(this.body.GetPosition());
+  // Get its angle of rotation
+  var a = this.body.GetAngleDegrees();
+  
+  this.animateItems();
+  // Draw it!
+  // translate:
+  this.paperShape.position.x = pos.x;
+  this.paperShape.position.y = pos.y;
+  // rotation:
+  this.paperShape.rotate(a-this.paperShape.rotation);
+
+};
 
 // Class to describe the spring joint (displayed as a line)
 
@@ -366,7 +423,7 @@ Spring.prototype.update = function(x, y) {
         to:     [v2.x, v2.y],
         strokeColor:  getRandomColor(),
         strokeWidth:  4,
-        opacity:  getRandom(0.2, 0.7)
+        //opacity:  getRandom(0.2, 0.7)
       });
     }
 
@@ -432,10 +489,12 @@ CustomListener.prototype.BeginContact = function(contact) {
   var o2 = b2.GetUserData();
 
   if (o1 instanceof B2Generic && o2 instanceof B2Generic) {
+    /*
     var color1 = o1.getColor();
     var color2 = o2.getColor();
     o1.changeColor(color2);
     o2.changeColor(color1);
+    */
   }
 
 };
@@ -479,6 +538,7 @@ var Boundary = function(x_,y_, w_, h_) {
   fd.shape.SetAsBox(B2Helper.scaleToWorld(this.w/2), B2Helper.scaleToWorld(this.h/2));
   this.body = world.CreateBody(bd).CreateFixture(fd);
 
+/*
   // creates the shape to be drawn by paper.js
   this.shape = new Shape.Rectangle({
     point:  [this.x-this.w/2, this.y-this.h/2],
@@ -486,6 +546,7 @@ var Boundary = function(x_,y_, w_, h_) {
     strokeColor:  'black',
     fillColor:    getRandomColor()
   });
+*/
 };
 
 // event handler function for mouse (if applicable)
@@ -549,7 +610,7 @@ var getRandomInt = function (min, max) {
 };
 
 var getRandomColor = function() {
-  var c = new Color(Math.random(), Math.random(), Math.random());
+  var c = new Color(getRandom(0.5, 1.0), getRandom(0.5, 1.0), getRandom(0.5, 1.0));
   return c;
 };
 
@@ -595,16 +656,14 @@ boundaries.push(new Boundary(width-5,height/2,10,height,0));
 boundaries.push(new Boundary(5,height/2,10,height,0));
 
 for (i = 0; i < 20; i++ ) {
-  value = getRandom(0, 4);
+  value = getRandom(0, 3);
 
   if ( value < 1 ) {
-    RandomItem = RandomPolygon;
-  } else if (value < 2 ) {
     RandomItem = Box;
-  } else if (value < 3 ) {
+  } else if (value < 2) {
     RandomItem = Particle;
   } else {
-    RandomItem = Lollipop;
+    RandomItem = Creature;
   }
 
   boxes.push( new RandomItem(getRandom(1/8, 7/8)*width,getRandom(1/8, 7/8)*height) );
@@ -624,7 +683,7 @@ fps_data.style = {
 fps_data.prevTimeStamp = 0.0;
 
 var desc = new PointText(24, height-24);
-desc.content = 'Mouse springs and collision-triggered action.';
+desc.content = 'Creatures.';
 desc.style = {
   fontFamily: 'Courier New',
   fontWeight: 'normal',

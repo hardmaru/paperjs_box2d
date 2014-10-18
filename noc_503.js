@@ -1,24 +1,31 @@
+/*globals paper, console, $ */
+/*jslint nomen: true, undef: true, sloppy: true */
+
+var NOC = NOC || {};
+
+
+
 // Extended Daniel Shiffman's natureofcode example to paper.js
-
-// objects:
-
-// A rectangular box
-// paper-js usage:
+// https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp05_libraries/box2d-html5
 
 // create local scope to avoid polluting global namespace
-(function () {
+NOC.demo = NOC.demo || [];
+NOC.demo[3] = function (canvasName) {
 
 // put paper.js in local environment, and setup canvas and tool (for events)
-paper.install(window);
-paper.setup('myCanvas');
+this.paper = new paper.PaperScope();
+this.paper.setup(canvasName);
+
+with (this.paper) {
+
 var tool = new Tool();
 
 // setup objects used in the sketch:
 
 // for the box, x and y are in pixel space already.  let the B2Helper function do conversion.
 var Box = function(x, y) {
-  this.w = getRandom(20, 40);
-  this.h = getRandom(30, 60);
+  this.w = getRandom(15, 25);
+  this.h = getRandom(20, 35);
 
   //
   this.life = MAX_LIFE; // dies after MAX_LIFE frames, with some randomness.
@@ -107,7 +114,7 @@ Box.prototype.update = function(event) {
 
 // for the particle (circle), x and y are in pixel space already.  let the B2Helper function do conversion.
 var Particle = function(x, y, r) {
-  this.r = getRandom(15, 40);
+  this.r = getRandom(10, 30);
 
   //
   this.life = MAX_LIFE; // dies after MAX_LIFE frames, with some randomness.
@@ -208,7 +215,7 @@ Particle.prototype.update = function(event) {
 // A fixed boundary class
 
 // An uneven surface boundary
-Surface = function (width_, height_) {
+var Surface = function (width_, height_) {
   var width = width_;
   var height = height_;
   var i, v;
@@ -273,7 +280,7 @@ var mousePressed = function (event) {
 
 // main animation loop:
 
-draw = function (event) {
+var draw = function (event) {
 
   // main simulation step for physics engine. 
   // 2nd and 3rd arguments are velocity and position iterations
@@ -301,15 +308,15 @@ draw = function (event) {
 };
 
 // useful helper functions
-getRandom = function (min, max) {
+var getRandom = function (min, max) {
   return Math.random() * (max - min) + min;
 };
 
-getRandomInt = function (min, max) {
+var getRandomInt = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
-getRandomColor = function() {
+var getRandomColor = function() {
   var c = new Color(Math.random(), Math.random(), Math.random());
   return c;
 };
@@ -356,7 +363,7 @@ fps_data.style = {
 fps_data.prevTimeStamp = 0.0;
 
 var desc = new PointText(width, 24);
-desc.content = 'Boundaries and Shapes.';
+desc.content = 'Custom Shape Boundaries.';
 desc.style = {
   fontFamily: 'Courier New',
   fontWeight: 'normal',
@@ -377,19 +384,20 @@ clickMe.style = {
 
 // set animation and event hooks:
 
-window.onload = function () {
-  view.onFrame = function(event) {
-    var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
-    // update fps every 60 frames.
-    if ((event.count + 1) % 60 === 0) {
-      fps_data.content = fps;
-      fps_data.prevTimeStamp = event.time;
-    }
-    draw(event);
-  };
-  tool.onMouseDown = mousePressed;
-  tool.onMouseDrag = mousePressed;
-};
 
-})();
+view.onFrame = function(event) {
+  var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
+  // update fps every 60 frames.
+  if ((event.count + 1) % 60 === 0) {
+    fps_data.content = fps;
+    fps_data.prevTimeStamp = event.time;
+  }
+  draw(event);
+};
+tool.onMouseDown = mousePressed;
+tool.onMouseDrag = mousePressed;
+
+}
+
+};
 

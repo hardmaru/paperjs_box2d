@@ -1,16 +1,23 @@
+/*globals paper, console, $ */
+/*jslint nomen: true, undef: true, sloppy: true */
+
+var NOC = NOC || {};
+
+
+
 // Extended Daniel Shiffman's natureofcode example to paper.js
-
-// objects:
-
-// A rectangular box
-// paper-js usage:
+// https://github.com/shiffman/The-Nature-of-Code-Examples-p5.js/tree/master/chp05_libraries/box2d-html5
 
 // create local scope to avoid polluting global namespace
-(function () {
+NOC.demo = NOC.demo || [];
+NOC.demo[4] = function (canvasName) {
 
 // put paper.js in local environment, and setup canvas and tool (for events)
-paper.install(window);
-paper.setup('myCanvas');
+this.paper = new paper.PaperScope();
+this.paper.setup(canvasName);
+
+with (this.paper) {
+
 var tool = new Tool();
 
 // setup objects used in the sketch:
@@ -383,7 +390,7 @@ var mousePressed = function (event) {
 
 // main animation loop:
 
-draw = function (event) {
+var draw = function (event) {
 
   // main simulation step for physics engine. 
   // 2nd and 3rd arguments are velocity and position iterations
@@ -399,15 +406,15 @@ draw = function (event) {
 };
 
 // useful helper functions
-getRandom = function (min, max) {
+var getRandom = function (min, max) {
   return Math.random() * (max - min) + min;
 };
 
-getRandomInt = function (min, max) {
+var getRandomInt = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
-getRandomColor = function() {
+var getRandomColor = function() {
   var c = new Color(Math.random(), Math.random(), Math.random());
   return c;
 };
@@ -445,7 +452,7 @@ var b = new RandomPolygon(width/2,30);
 boxes.push(b);
 
 // write the fps into the canvas
-var fps_data = new PointText(8, 24);
+var fps_data = new PointText(16, 24);
 fps_data.content = 60;
 fps_data.style = {
   fontFamily: 'Courier New',
@@ -478,7 +485,6 @@ clickMe.style = {
 
 // set animation and event hooks:
 
-window.onload = function () {
   view.onFrame = function(event) {
     var fps = Math.round(600 / (event.time-fps_data.prevTimeStamp)) / 10;
     // update fps every 60 frames.
@@ -490,7 +496,8 @@ window.onload = function () {
   };
   tool.onMouseDown = mousePressed;
   tool.onMouseDrag = mousePressed;
-};
 
-})();
+}
+
+};
 
