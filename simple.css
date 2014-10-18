@@ -1,0 +1,15 @@
+body {
+	margin: 0px;
+	overflow: hidden;
+	background: #FFF;
+}
+canvas {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+p {
+    font-family: "", Courier;
+    font-style: normal;
+	color: #BBBBBB;
+}
